@@ -37,6 +37,11 @@ namespace Propelle.InterviewChallenge.Tests
             var sentDeposits = investrClient.SubmittedDeposits
                 .Where(x => requests.Select(x => x.UserId).Contains(x.UserId))
                 .ToList();
+            
+            /*
+             * 3. Upon re-running all test I noticed that this one now fails. Presumably because the SmartInvestClient of the unreliability issues.
+             * I decided to inspect the SubmitDeposit handler.
+             */
 
             Assert.Equal(iterations, sentDeposits.Count);
         }
@@ -65,6 +70,22 @@ namespace Propelle.InterviewChallenge.Tests
                 .ToListAsync();
 
             Assert.Equal(iterations, storedDeposits.Count);
+            
+            /*
+             * 1. I debugged this test and using the Immediate window I ran the following query:
+             *
+             * storedDeposits
+             *   .GroupBy(d => new { d.Id, d.UserId, d.Amount })
+             *   .Where(group => group.Count() > 1)
+             *   .Select(group => new {
+             *       Key = group.Key, 
+             *       Count = group.Count()
+             *   })
+             *   .ToList();
+             *  
+             *  By omitting the Id from the GroupBy clause, I was able to see that the same deposit was being stored multiple times but with a different Id.
+             *  I then decided to explore the MakeDeposit endpoint.
+            */
         }
 
         private static async Task<T> TryUntilSuccessful<T>(
@@ -108,7 +129,8 @@ namespace Propelle.InterviewChallenge.Tests
             return new MakeDeposit.Request
             {
                 UserId = Guid.NewGuid(),
-                Amount = new Random().Next(100, 1000)
+                Amount = new Random().Next(100, 1000),
+                IdempotencyKey = Guid.NewGuid()
             };
         }
     }

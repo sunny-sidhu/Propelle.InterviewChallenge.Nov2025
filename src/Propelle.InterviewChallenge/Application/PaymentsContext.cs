@@ -16,6 +16,7 @@ namespace Propelle.InterviewChallenge.Application
             depositConfig.HasKey(x => x.Id);
             depositConfig.Property(x => x.UserId).IsRequired();
             depositConfig.Property(x => x.Amount).IsRequired();
+            depositConfig.Property(x => x.IdempotencyKey).IsRequired();
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
